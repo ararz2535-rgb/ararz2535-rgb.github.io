@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magyar–Հայերեն · Բառապաշար</title>
+<style>
+  :root{
+    --paprika:#c8442f;
+    --paprika-dark:#9c3220;
+    --cream:#f6efe2;
+    --ink:#2b2520;
+    --ink-soft:#5c5247;
+    --gold:#d4a437;
+    --green:#3f7d52;
+    --line:#dccfb0;
+    --card-bg:#fffdf8;
+    --shadow: 0 18px 40px -18px rgba(43,37,32,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% 8%, rgba(200,68,47,0.08), transparent 40%),
+      radial-gradient(circle at 92% 88%, rgba(212,164,55,0.10), transparent 45%),
+      var(--cream);
+    color:var(--ink);
+    font-family: 'Iowan Old Style','Georgia','Noto Serif Armenian',serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:28px 20px 80px;}
+
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:16px;flex-wrap:wrap;
+    margin-bottom:22px;
+    border-bottom:2px solid var(--line);
+    padding-bottom:18px;
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;}
+  .brand .mark{
+    font-family:'Trebuchet MS',sans-serif;
+    letter-spacing:0.22em;text-transform:uppercase;
+    font-size:11px;color:var(--paprika-dark);font-weight:700;
+  }
+  .brand h1{
+    margin:2px 0 0;font-size:30px;font-weight:700;line-height:1.1;
+  }
+  .brand h1 .am{color:var(--paprika);}
+  .brand .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;font-style:italic;}
+
+  .stats{
+    display:flex;gap:18px;font-family:'Trebuchet MS',sans-serif;
+  }
+  .stat{text-align:center;min-width:64px;}
+  .stat .num{font-size:22px;font-weight:800;color:var(--paprika-dark);}
+  .stat .lbl{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+
+  nav.modes{
+    display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;
+  }
+  .mode-btn{
+    font-family:'Trebuchet MS',sans-serif;
+    border:2px solid var(--line);background:var(--card-bg);
+    color:var(--ink-soft);padding:9px 18px;border-radius:30px;
+    font-size:13px;font-weight:700;letter-spacing:0.02em;
+    cursor:pointer;transition:all .18s ease;
+  }
+  .mode-btn:hover{border-color:var(--gold);}
+  .mode-btn.active{
+    background:var(--paprika);border-color:var(--paprika);color:#fff;
+  }
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ---------- FLASHCARDS ---------- */
+  .deck-controls{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:16px;flex-wrap:wrap;gap:10px;
+  }
+  .dir-toggle{
+    font-family:'Trebuchet MS',sans-serif;font-size:12.5px;
+    display:flex;align-items:center;gap:8px;color:var(--ink-soft);
+  }
+  .dir-toggle button{
+    border:1.5px solid var(--line);background:var(--card-bg);
+    padding:6px 12px;border-radius:20px;cursor:pointer;
+    font-family:inherit;font-size:12.5px;font-weight:700;color:var(--ink);
+  }
+  .dir-toggle button.on{background:var(--gold);border-color:var(--gold);color:#322600;}
+  .progress-bar{
+    flex:1;min-width:160px;height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:0 14px;
+  }
+  .progress-fill{height:100%;background:var(--paprika);width:0%;transition:width .3s ease;}
+  .progress-text{font-family:'Trebuchet MS',sans-serif;font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+
+  .card-stage{
+    display:flex;justify-content:center;margin:18px 0 22px;
+    perspective:1400px;
+  }
+  .flashcard{
+    width:100%;max-width:480px;height:280px;position:relative;cursor:pointer;
+  }
+  .flashcard-inner{
+    width:100%;height:100%;position:relative;
+    transition:transform .5s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+  .face{
+    position:absolute;inset:0;
+    backface-visibility:hidden;
+    border-radius:18px;
+    background:var(--card-bg);
+    border:1.5px solid var(--line);
+    box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:30px;text-align:center;
+  }
+  .face .eyebrow{
+    font-family:'Trebuchet MS',sans-serif;font-size:11px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:14px;
+  }
+  .face .word{font-size:38px;font-weight:700;line-height:1.2;}
+  .face.back{transform:rotateY(180deg);background:#fffaf1;}
+  .face.back .word{color:var(--paprika-dark);font-size:26px;}
+  .hint{
+    font-family:'Trebuchet MS',sans-serif;font-size:11.5px;color:var(--ink-soft);
+    position:absolute;bottom:14px;left:0;right:0;text-align:center;opacity:.65;
+  }
+  .srs-badge{
+    position:absolute;top:12px;right:14px;
+    font-family:'Trebuchet MS',sans-serif;font-size:10.5px;font-weight:700;
+    color:var(--ink-soft);background:var(--cream);border:1px solid var(--line);
+    padding:3px 9px;border-radius:12px;
+  }
+
+  .rate-row{
+    display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
+  }
+  .rate-btn{
+    font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:13.5px;
+    border:none;border-radius:12px;padding:13px 20px;cursor:pointer;
+    color:#fff;min-width:120px;transition:transform .12s ease, filter .12s ease;
+    display:flex;flex-direction:column;gap:2px;align-items:center;
+  }
+  .rate-btn small{font-weight:500;opacity:.85;font-size:10.5px;}
+  .rate-btn:hover{transform:translateY(-2px);filter:brightness(1.06);}
+  .rate-btn:disabled{opacity:.35;cursor:default;transform:none;}
+  .rb-again{background:#a83e34;}
+  .rb-hard{background:#c0782e;}
+  .rb-good{background:var(--green);}
+  .rb-easy{background:#2f6f8f;}
+
+  .deck-empty{
+    text-align:center;padding:60px 20px;color:var(--ink-soft);
+    font-family:'Trebuchet MS',sans-serif;
+  }
+  .deck-empty .big{font-size:42px;margin-bottom:10px;}
+
+  /* ---------- QUIZ ---------- */
+  .quiz-box{
+    background:var(--card-bg);border:1.5px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);padding:34px 30px;max-width:560px;margin:0 auto;
+  }
+  .quiz-top{
+    display:flex;justify-content:space-between;font-family:'Trebuchet MS',sans-serif;
+    font-size:12.5px;color:var(--ink-soft);margin-bottom:18px;
+  }
+  .quiz-prompt-eyebrow{
+    font-family:'Trebuchet MS',sans-serif;font-size:11px;letter-spacing:0.16em;
+    text-transform:uppercase;color:var(--gold);font-weight:700;text-align:center;
+  }
+  .quiz-prompt{
+    font-size:32px;font-weight:700;text-align:center;margin:10px 0 26px;color:var(--ink);
+  }
+  .quiz-options{display:flex;flex-direction:column;gap:10px;}
+  .quiz-opt{
+    font-family:'Trebuchet MS',sans-serif;text-align:left;
+    border:1.5px solid var(--line);background:#fffefb;
+    padding:13px 16px;border-radius:10px;cursor:pointer;font-size:14.5px;color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .quiz-opt:hover{border-color:var(--gold);}
+  .quiz-opt.correct{background:#e3f1e6;border-color:var(--green);color:#234a30;font-weight:700;}
+  .quiz-opt.wrong{background:#f7e3df;border-color:var(--paprika);color:var(--paprika-dark);font-weight:700;}
+  .quiz-opt:disabled{cursor:default;}
+  .quiz-next{
+    margin-top:20px;width:100%;padding:13px;border:none;border-radius:10px;
+    background:var(--paprika);color:#fff;font-weight:700;font-family:'Trebuchet MS',sans-serif;
+    cursor:pointer;font-size:14px;
+  }
+  .quiz-next:disabled{opacity:.4;cursor:default;}
+  .quiz-score{
+    text-align:center;font-family:'Trebuchet MS',sans-serif;color:var(--ink-soft);
+    font-size:13px;margin-top:14px;
+  }
+
+  /* ---------- BROWSE / TABLE ---------- */
+  .browse-search{
+    width:100%;padding:12px 16px;border-radius:10px;border:1.5px solid var(--line);
+    background:var(--card-bg);font-family:'Trebuchet MS',sans-serif;font-size:14px;margin-bottom:16px;
+  }
+  .browse-list{display:grid;gap:8px;}
+  .browse-row{
+    display:flex;justify-content:space-between;align-items:center;gap:14px;
+    background:var(--card-bg);border:1px solid var(--line);border-radius:10px;
+    padding:11px 16px;
+  }
+  .browse-row .hu{font-weight:700;font-size:15px;min-width:130px;}
+  .browse-row .am{color:var(--ink-soft);font-size:14px;text-align:right;flex:1;}
+  .browse-row .lvl{
+    font-family:'Trebuchet MS',sans-serif;font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:8px;min-width:54px;text-align:center;
+  }
+  .lvl-new{background:#e6e1d4;color:var(--ink-soft);}
+  .lvl-learning{background:#fbe6c9;color:#8a5a14;}
+  .lvl-known{background:#dcefe0;color:var(--green);}
+
+  footer.tip{
+    margin-top:36px;padding-top:18px;border-top:1.5px solid var(--line);
+    font-family:'Trebuchet MS',sans-serif;font-size:12px;color:var(--ink-soft);
+    text-align:center;
+  }
+
+  .reset-link{
+    background:none;border:none;color:var(--ink-soft);text-decoration:underline;
+    font-family:'Trebuchet MS',sans-serif;font-size:11.5px;cursor:pointer;padding:0;
+  }
+
+  @media (max-width:560px){
+    .brand h1{font-size:24px;}
+    .stats{gap:10px;}
+    .flashcard{height:230px;}
+    .face .word{font-size:28px;}
+    .quiz-prompt{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="mark">Szókincs · Բառապաշար</div>
+      <h1>Magyar <span class="am">→ Հայերեն</span></h1>
+      <div class="sub">156 բառ · A2–B1 մակարդակ</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="statNew">0</div><div class="lbl">Նոր</div></div>
+      <div class="stat"><div class="num" id="statLearning">0</div><div class="lbl">Սովորում</div></div>
+      <div class="stat"><div class="num" id="statKnown">0</div><div class="lbl">Գիտեմ</div></div>
+      <div class="stat"><div class="num" id="statStreak">0</div><div class="lbl">Օր անընդմեջ</div></div>
+    </div>
+  </header>
+
+  <nav class="modes">
+    <button class="mode-btn active" data-mode="study">🗂️ Ուսուցում</button>
+    <button class="mode-btn" data-mode="quiz">❓ Թեստ</button>
+    <button class="mode-btn" data-mode="browse">📖 Ամբողջ ցուցակը</button>
+  </nav>
+
+  <!-- STUDY / SRS PANEL -->
+  <section class="panel active" id="panel-study">
+    <div class="deck-controls">
+      <div class="dir-toggle">
+        Ուղղություն՝
+        <button id="dirHuAm" class="on">HU → AM</button>
+        <button id="dirAmHu">AM → HU</button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="studyProgressFill"></div></div>
+      <div class="progress-text" id="studyProgressText">0 / 0</div>
+    </div>
+
+    <div class="card-stage">
+      <div class="flashcard" id="flashcard">
+        <div class="srs-badge" id="srsBadge">նոր</div>
+        <div class="flashcard-inner">
+          <div class="face front">
+            <div class="eyebrow" id="frontEyebrow">հունգարերեն</div>
+            <div class="word" id="frontWord">—</div>
+          </div>
+          <div class="face back">
+            <div class="eyebrow" id="backEyebrow">հայերեն</div>
+            <div class="word" id="backWord">—</div>
+          </div>
+        </div>
+        <div class="hint">սեղմիր՝ շրջելու համար</div>
+      </div>
+    </div>
+
+    <div class="rate-row" id="rateRow">
+      <button class="rate-btn rb-again" data-grade="again" disabled>Չգիտեի<small>կրկնել մոտ ապագայում</small></button>
+      <button class="rate-btn rb-hard" data-grade="hard" disabled>Դժվար էր<small>կրկնել շուտով</small></button>
+      <button class="rate-btn rb-good" data-grade="good" disabled>Գիտեի<small>կրկնել մի քանի օրից</small></button>
+      <button class="rate-btn rb-easy" data-grade="easy" disabled>Հեշտ էր<small>կրկնել ուշ</small></button>
+    </div>
+  </section>
+
+  <!-- QUIZ PANEL -->
+  <section class="panel" id="panel-quiz">
+    <div class="quiz-box">
+      <div class="quiz-top">
+        <span id="quizCounter">Հարց 1 / 156</span>
+        <span id="quizScoreTop">✓ 0 · ✗ 0</span>
+      </div>
+      <div class="quiz-prompt-eyebrow" id="quizEyebrow">Ո՞րն է թարգմանությունը</div>
+      <div class="quiz-prompt" id="quizPrompt">—</div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <button class="quiz-next" id="quizNextBtn" disabled>Հաջորդը →</button>
+    </div>
+  </section>
+
+  <!-- BROWSE PANEL -->
+  <section class="panel" id="panel-browse">
+    <input type="text" class="browse-search" id="browseSearch" placeholder="Փնտրել հունգարերեն կամ հայերեն բառ...">
+    <div class="browse-list" id="browseList"></div>
+  </section>
+
+  <footer class="tip">
+    Քո առաջընթացը պահպանվում է ինքնաշխատ այս սարքում/browser-ում (localStorage)։
+    <br>
+    <button class="reset-link" id="resetBtn">Զրոյացնել ողջ առաջընթացը</button>
+  </footer>
+
+</div>
+
+<script>
+const WORDS = [
+  {hu:"mikor", am:"երբ"},
+  {hu:"hogyan", am:"ինչպես"},
+  {hu:"melyik", am:"որը (ընտրության դեպքում)"},
+  {hu:"ezek", am:"սրանք"},
+  {hu:"azok", am:"նրանք (այնները)"},
+  {hu:"akar", am:"ցանկանալ, ուզել"},
+  {hu:"kell", am:"պետք է"},
+  {hu:"lehet", am:"կարելի է, հնարավոր է"},
+  {hu:"kap", am:"ստանալ"},
+  {hu:"vesz", am:"գնել, վերցնել"},
+  {hu:"ismer", am:"ճանաչել, իմանալ"},
+  {hu:"talál", am:"գտնել"},
+  {hu:"keres", am:"փնտրել"},
+  {hu:"játszik", am:"խաղալ"},
+  {hu:"alszik", am:"քնել"},
+  {hu:"ébred", am:"արթնանալ"},
+  {hu:"nyit", am:"բացել"},
+  {hu:"zár", am:"փակել"},
+  {hu:"ül", am:"նստել"},
+  {hu:"áll", am:"կանգնել"},
+  {hu:"hoz", am:"բերել"},
+  {hu:"visz", am:"տանել"},
+  {hu:"tesz", am:"դնել, անել"},
+  {hu:"marad", am:"մնալ"},
+  {hu:"kezd", am:"սկսել"},
+  {hu:"befejez", am:"ավարտել"},
+  {hu:"hisz", am:"հավատալ"},
+  {hu:"érez", am:"զգալ"},
+  {hu:"fél", am:"վախենալ"},
+  {hu:"emlékszik", am:"հիշել"},
+  {hu:"felejt", am:"մոռանալ"},
+  {hu:"hív", am:"կանչել, զանգահարել"},
+  {hu:"mutat", am:"ցույց տալ"},
+  {hu:"használ", am:"օգտագործել"},
+  {hu:"próbál", am:"փորձել"},
+  {hu:"dönt", am:"որոշել"},
+  {hu:"hét", am:"շաբաթ"},
+  {hu:"hónap", am:"ամիս"},
+  {hu:"év", am:"տարի"},
+  {hu:"testvér", am:"եղբայր / քույր"},
+  {hu:"levél", am:"նամակ"},
+  {hu:"vonat", am:"գնացք"},
+  {hu:"étel", am:"ուտելիք, ճաշ"},
+  {hu:"hosszú", am:"երկար"},
+  {hu:"rövid", am:"կարճ"},
+  {hu:"régi", am:"հին"},
+  {hu:"új", am:"նոր"},
+  {hu:"fiatal", am:"երիտասարդ"},
+  {hu:"öreg", am:"ծեր"},
+  {hu:"erős", am:"ուժեղ"},
+  {hu:"gyenge", am:"թույլ"},
+  {hu:"meleg", am:"տաք"},
+  {hu:"hideg", am:"սառը"},
+  {hu:"tiszta", am:"մաքուր"},
+  {hu:"piszkos", am:"կեղտոտ"},
+  {hu:"egészséges", am:"առողջ"},
+  {hu:"ritkán", am:"հազվադեպ"},
+  {hu:"együtt", am:"միասին"},
+  {hu:"külön", am:"առանձին"},
+  {hu:"közel", am:"մոտ"},
+  {hu:"messze", am:"հեռու"},
+  {hu:"fent", am:"վերևում"},
+  {hu:"lent", am:"ներքևում"},
+  {hu:"előtt", am:"առաջ, դիմաց"},
+  {hu:"mögött", am:"հետևում"},
+  {hu:"mellett", am:"կողքին"},
+  {hu:"között", am:"միջև"},
+  {hu:"alatt", am:"տակ"},
+  {hu:"felett", am:"վերևում, վրա"},
+  {hu:"belül", am:"ներսում"},
+  {hu:"kívül", am:"դրսում"},
+  {hu:"be", am:"ներս, դեպի ներս"},
+  {hu:"ki", am:"դուրս"},
+  {hu:"fel", am:"վեր, դեպի վեր"},
+  {hu:"le", am:"վար, դեպի ներքև"},
+  {hu:"után", am:"հետո"},
+  {hu:"először", am:"սկզբում, առաջին հերթին"},
+  {hu:"azután", am:"հետո, այնուհետև"},
+  {hu:"amikor", am:"երբ"},
+  {hu:"ami", am:"որը, ինչ"},
+  {hu:"mint", am:"ինչպես, քան"},
+  {hu:"tehát", am:"ուրեմն, հետևաբար"},
+  {hu:"mindkettő", am:"երկուսն էլ"},
+  {hu:"más", am:"ուրիշ, այլ"},
+  {hu:"több", am:"ավելի շատ"},
+  {hu:"kevesebb", am:"ավելի քիչ"},
+  {hu:"épület", am:"շենք"},
+  {hu:"ugyanaz", am:"նույնը"},
+  {hu:"élet", am:"կյանք"},
+  {hu:"halál", am:"մահ"},
+  {hu:"születik", am:"ծնվել"},
+  {hu:"meghal", am:"մահանալ"},
+  {hu:"szél", am:"քամի"},
+  {hu:"időjárás", am:"եղանակ"},
+  {hu:"ég", am:"երկինք"},
+  {hu:"napfény", am:"արևի լույս"},
+  {hu:"csillag", am:"աստղ"},
+  {hu:"hold", am:"լուսին"},
+  {hu:"föld", am:"հող (կամ երկիր)"},
+  {hu:"reggeli", am:"նախաճաշ"},
+  {hu:"ebéd", am:"ճաշ"},
+  {hu:"vacsora", am:"ընթրիք"},
+  {hu:"ital", am:"ըմպելիք (խմիչք)"},
+  {hu:"desszert", am:"դեսերտ"},
+  {hu:"íz", am:"համ"},
+  {hu:"finom", am:"համեղ"},
+  {hu:"sós", am:"աղի"},
+  {hu:"édes", am:"քաղցր"},
+  {hu:"csípős", am:"կծու"},
+  {hu:"egyszer", am:"մեկ անգամ, մի անգամ"},
+  {hu:"azért", am:"դրա համար, այդ պատճառով"},
+  {hu:"persze", am:"իհարկե"},
+  {hu:"biztos", am:"վստահ, հաստատ"},
+  {hu:"talán", am:"գուցե"},
+  {hu:"szinte", am:"գրեթե"},
+  {hu:"inkább", am:"ավելի շուտ, ավելի լավ"},
+  {hu:"egyébként", am:"ի դեպ, ընդհանրապես"},
+  {hu:"például", am:"օրինակ"},
+  {hu:"ugye", am:"չէ՞, այդպես չէ՞"},
+  {hu:"mindjárt", am:"անմիջապես, շուտով"},
+  {hu:"azonnal", am:"անմիջապես, հենց այս պահին"},
+  {hu:"hamar", am:"շուտ (շուտով)"},
+  {hu:"későn", am:"ուշ"},
+  {hu:"korán", am:"վաղ"},
+  {hu:"gyorsan", am:"արագ"},
+  {hu:"lassan", am:"դանդաղ"},
+  {hu:"egyedül", am:"մենակ"},
+  {hu:"egyáltalán", am:"ընդհանրապես"},
+  {hu:"majd", am:"հետո, ավելի ուշ, մի օր"},
+  {hu:"valószínűleg", am:"հավանաբար"},
+  {hu:"egészen", am:"ամբողջովին, բոլորովին"},
+  {hu:"tényleg", am:"իրոք, իսկապես"},
+  {hu:"igazából", am:"իրականում"},
+  {hu:"különben", am:"հակառակ դեպքում"},
+  {hu:"legalább", am:"գոնե"},
+  {hu:"túl", am:"չափազանց"},
+  {hu:"elég", am:"բավական"},
+  {hu:"sőt", am:"նույնիսկ, ավելին"},
+  {hu:"viszont", am:"սակայն, փոխարենը"},
+  {hu:"szabad", am:"կարելի է, ազատ"},
+  {hu:"muszáj", am:"պարտադիր է"},
+  {hu:"képes", am:"ունակ, կարող"},
+  {hu:"sikerül", am:"հաջողվել"},
+  {hu:"maradni", am:"մնալ"},
+  {hu:"változik", am:"փոխվել"},
+  {hu:"választ", am:"ընտրում է (ընտրել)"},
+  {hu:"nyer", am:"հաղթել, շահել"},
+  {hu:"veszít", am:"կորցնել, պարտվել"},
+  {hu:"enged", am:"թույլ տալ"},
+  {hu:"megérkezik", am:"ժամանել"},
+  {hu:"indul", am:"մեկնել"},
+  {hu:"érkezik", am:"ժամանել, հասնել"},
+  {hu:"belép", am:"ներս մտնել, մուտք գործել"},
+  {hu:"kilép", am:"դուրս գալ"},
+  {hu:"felvesz", am:"վերցնել, հագնել, բարձրացնել"},
+  {hu:"visszajön", am:"վերադառնալ"}
+];
+WORDS.forEach((w,i)=> w.id = i);
+
+const STORAGE_KEY = "hu_am_flashcards_progress_v1";
+const DAY_MS = 24*60*60*1000;
+
+// SRS intervals (in days) by box level 0..4
+const INTERVALS = [0, 1, 3, 7, 16];
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const cards = {};
+  WORDS.forEach(w=>{
+    cards[w.id] = { box:0, due: Date.now(), seen:0 };
+  });
+  return { cards, lastVisit: null, streak: 0, direction: "hu-am" };
+}
+
+let state = loadState();
+// ensure all words present (in case word list changed)
+WORDS.forEach(w=>{
+  if(!state.cards[w.id]) state.cards[w.id] = { box:0, due: Date.now(), seen:0 };
+});
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function updateStreak(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayTs = today.getTime();
+  if(state.lastVisit == null){
+    state.streak = 1;
+  } else if(state.lastVisit === todayTs){
+    // already counted today
+  } else if(state.lastVisit === todayTs - DAY_MS){
+    state.streak += 1;
+  } else {
+    state.streak = 1;
+  }
+  state.lastVisit = todayTs;
+  saveState();
+}
+updateStreak();
+
+function cardLevel(c){
+  if(c.box === 0 && c.seen === 0) return "new";
+  if(c.box >= 3) return "known";
+  return "learning";
+}
+
+function refreshStats(){
+  let n=0,l=0,k=0;
+  WORDS.forEach(w=>{
+    const lvl = cardLevel(state.cards[w.id]);
+    if(lvl==="new") n++; else if(lvl==="learning") l++; else k++;
+  });
+  document.getElementById("statNew").textContent = n;
+  document.getElementById("statLearning").textContent = l;
+  document.getElementById("statKnown").textContent = k;
+  document.getElementById("statStreak").textContent = state.streak;
+}
+
+/* ---------------- STUDY (SRS) MODE ---------------- */
+let studyQueue = [];
+let studyIndex = 0;
+let currentCard = null;
+let isFlipped = false;
+
+function buildStudyQueue(){
+  const now = Date.now();
+  const due = WORDS.filter(w => state.cards[w.id].due <= now);
+  // sort: lowest box first, then due date
+  due.sort((a,b)=>{
+    const ca = state.cards[a.id], cb = state.cards[b.id];
+    if(ca.box !== cb.box) return ca.box - cb.box;
+    return ca.due - cb.due;
+  });
+  // cap session size for sanity but allow full pass-through
+  studyQueue = due;
+  studyIndex = 0;
+}
+
+function showStudyEmpty(){
+  document.querySelector(".card-stage").innerHTML = `
+    <div class="deck-empty">
+      <div class="big">🎉</div>
+      Բոլոր բառերը այսօրվա համար կրկնված են։<br>Վերադարձիր ավելի ուշ՝ նոր կրկնության համար։
+    </div>`;
+  document.getElementById("rateRow").style.display = "none";
+}
+
+function renderStudyCard(){
+  if(studyIndex >= studyQueue.length){
+    showStudyEmpty();
+    updateStudyProgress();
+    return;
+  }
+  currentCard = studyQueue[studyIndex];
+  isFlipped = false;
+  const fc = document.getElementById("flashcard");
+  fc.classList.remove("flipped");
+
+  const dir = state.direction;
+  const frontWord = dir === "hu-am" ? currentCard.hu : currentCard.am;
+  const backWord = dir === "hu-am" ? currentCard.am : currentCard.hu;
+  document.getElementById("frontEyebrow").textContent = dir === "hu-am" ? "հունգարերեն" : "հայերեն";
+  document.getElementById("backEyebrow").textContent = dir === "hu-am" ? "հայերեն" : "հունգարերեն";
+  document.getElementById("frontWord").textContent = frontWord;
+  document.getElementById("backWord").textContent = backWord;
+
+  const box = state.cards[currentCard.id].box;
+  const badge = document.getElementById("srsBadge");
+  const labels = ["նոր","քայլ 1","քայլ 2","քայլ 3","հաստատված"];
+  badge.textContent = labels[Math.min(box, labels.length-1)];
+
+  document.querySelectorAll(".rate-btn").forEach(b=>b.disabled = true);
+  updateStudyProgress();
+}
+
+function updateStudyProgress(){
+  const total = studyQueue.length;
+  const done = Math.min(studyIndex, total);
+  document.getElementById("studyProgressText").textContent = total === 0 ? "0 / 0" : `${done} / ${total}`;
+  document.getElementById("studyProgressFill").style.width = total === 0 ? "0%" : `${(done/total)*100}%`;
+}
+
+document.getElementById("flashcard").addEventListener("click", function(){
+  if(!currentCard) return;
+  isFlipped = !isFlipped;
+  this.classList.toggle("flipped", isFlipped);
+  if(isFlipped){
+    document.querySelectorAll(".rate-btn").forEach(b=>b.disabled = false);
+  }
+});
+
+document.getElementById("rateRow").addEventListener("click", function(e){
+  const btn = e.target.closest(".rate-btn");
+  if(!btn || btn.disabled || !currentCard) return;
+  const grade = btn.dataset.grade;
+  const c = state.cards[currentCard.id];
+  c.seen += 1;
+
+  if(grade === "again"){
+    c.box = 0;
+    c.due = Date.now() + 1000*60*10; // 10 min
+  } else if(grade === "hard"){
+    c.box = Math.max(0, c.box); // stay
+    c.due = Date.now() + DAY_MS * INTERVALS[Math.min(c.box,1)];
+  } else if(grade === "good"){
+    c.box = Math.min(c.box+1, INTERVALS.length-1);
+    c.due = Date.now() + DAY_MS * INTERVALS[c.box];
+  } else if(grade === "easy"){
+    c.box = Math.min(c.box+2, INTERVALS.length-1);
+    c.due = Date.now() + DAY_MS * INTERVALS[c.box];
+  }
+  saveState();
+  refreshStats();
+  refreshBrowseList();
+
+  studyIndex += 1;
+  renderStudyCard();
+});
+
+document.getElementById("dirHuAm").addEventListener("click", ()=> setDirection("hu-am"));
+document.getElementById("dirAmHu").addEventListener("click", ()=> setDirection("am-hu"));
+function setDirection(dir){
+  state.direction = dir;
+  saveState();
+  document.getElementById("dirHuAm").classList.toggle("on", dir==="hu-am");
+  document.getElementById("dirAmHu").classList.toggle("on", dir==="am-hu");
+  if(currentCard) renderStudyCard();
+}
+
+/* ---------------- QUIZ MODE ---------------- */
+let quizPool = [];
+let quizIdx = 0;
+let quizCorrect = 0;
+let quizWrong = 0;
+let quizAnswered = false;
+
+function buildQuizPool(){
+  quizPool = WORDS.slice();
+  shuffle(quizPool);
+  quizIdx = 0;
+  quizCorrect = 0;
+  quizWrong = 0;
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function renderQuiz(){
+  if(quizIdx >= quizPool.length){
+    document.getElementById("quizPrompt").textContent = "Ավարտված է 🎉";
+    document.getElementById("quizOptions").innerHTML = `<div class="quiz-score">Արդյունք՝ ${quizCorrect} ճիշտ / ${quizWrong} սխալ</div>`;
+    document.getElementById("quizNextBtn").textContent = "Սկսել նորից";
+    document.getElementById("quizNextBtn").disabled = false;
+    quizAnswered = true;
+    document.getElementById("quizCounter").textContent = `Ավարտված՝ ${quizPool.length} հարցից`;
+    return;
+  }
+  quizAnswered = false;
+  const dir = state.direction;
+  const card = quizPool[quizIdx];
+  const askHu = dir === "hu-am"; // ask hungarian word, answer in armenian
+  const promptWord = askHu ? card.hu : card.am;
+  const correctAnswer = askHu ? card.am : card.hu;
+
+  document.getElementById("quizEyebrow").textContent = askHu ? "Ո՞րն է հայերեն թարգմանությունը" : "Ո՞րն է հունգարերեն բառը";
+  document.getElementById("quizPrompt").textContent = promptWord;
+  document.getElementById("quizCounter").textContent = `Հարց ${quizIdx+1} / ${quizPool.length}`;
+  document.getElementById("quizScoreTop").textContent = `✓ ${quizCorrect} · ✗ ${quizWrong}`;
+
+  // build 3 distractors
+  const others = WORDS.filter(w => w.id !== card.id);
+  shuffle(others);
+  const distractors = others.slice(0,3).map(w => askHu ? w.am : w.hu);
+  const options = shuffle([correctAnswer, ...distractors]);
+
+  const optWrap = document.getElementById("quizOptions");
+  optWrap.innerHTML = "";
+  options.forEach(opt=>{
+    const b = document.createElement("button");
+    b.className = "quiz-opt";
+    b.textContent = opt;
+    b.addEventListener("click", ()=> handleQuizAnswer(b, opt, correctAnswer, card));
+    optWrap.appendChild(b);
+  });
+  document.getElementById("quizNextBtn").textContent = "Հաջորդը →";
+  document.getElementById("quizNextBtn").disabled = true;
+}
+
+function handleQuizAnswer(btn, chosen, correct, card){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const allOpts = document.querySelectorAll(".quiz-opt");
+  allOpts.forEach(o=>{
+    o.disabled = true;
+    if(o.textContent === correct) o.classList.add("correct");
+    else if(o === btn) o.classList.add("wrong");
+  });
+  const c = state.cards[card.id];
+  if(chosen === correct){
+    quizCorrect++;
+    c.box = Math.min(c.box+1, INTERVALS.length-1);
+  } else {
+    quizWrong++;
+    c.box = 0;
+    c.due = Math.min(c.due, Date.now()); // surface again soon in study mode
+  }
+  c.seen += 1;
+  saveState();
+  refreshStats();
+  document.getElementById("quizScoreTop").textContent = `✓ ${quizCorrect} · ✗ ${quizWrong}`;
+  document.getElementById("quizNextBtn").disabled = false;
+}
+
+document.getElementById("quizNextBtn").addEventListener("click", ()=>{
+  if(quizIdx >= quizPool.length){
+    buildQuizPool();
+    renderQuiz();
+    return;
+  }
+  quizIdx++;
+  renderQuiz();
+});
+
+/* ---------------- BROWSE MODE ---------------- */
+function refreshBrowseList(filter){
+  const list = document.getElementById("browseList");
+  const q = (filter || document.getElementById("browseSearch").value || "").trim().toLowerCase();
+  list.innerHTML = "";
+  WORDS.forEach(w=>{
+    if(q && !w.hu.toLowerCase().includes(q) && !w.am.toLowerCase().includes(q)) return;
+    const lvl = cardLevel(state.cards[w.id]);
+    const lvlLabel = lvl === "new" ? "նոր" : lvl === "learning" ? "սովորում" : "գիտեմ";
+    const row = document.createElement("div");
+    row.className = "browse-row";
+    row.innerHTML = `
+      <span class="hu">${w.hu}</span>
+      <span class="lvl lvl-${lvl}">${lvlLabel}</span>
+      <span class="am">${w.am}</span>
+    `;
+    list.appendChild(row);
+  });
+}
+document.getElementById("browseSearch").addEventListener("input", e=> refreshBrowseList(e.target.value));
+
+/* ---------------- MODE SWITCHING ---------------- */
+document.querySelectorAll(".mode-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".mode-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const mode = btn.dataset.mode;
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("panel-"+mode).classList.add("active");
+    if(mode === "browse") refreshBrowseList();
+  });
+});
+
+/* ---------------- RESET ---------------- */
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(!confirm("Վստահ ես, որ ուզում ես զրոյացնել ողջ առաջընթացը։ Այս գործողությունը հնարավոր չէ չեղարկել։")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  updateStreak();
+  refreshStats();
+  buildStudyQueue();
+  renderStudyCard();
+  buildQuizPool();
+  renderQuiz();
+  refreshBrowseList();
+});
+
+/* ---------------- INIT ---------------- */
+document.getElementById("dirHuAm").classList.toggle("on", state.direction === "hu-am");
+document.getElementById("dirAmHu").classList.toggle("on", state.direction === "am-hu");
+refreshStats();
+buildStudyQueue();
+renderStudyCard();
+buildQuizPool();
+renderQuiz();
+refreshBrowseList();
+</script>
+</body>
+</html>
